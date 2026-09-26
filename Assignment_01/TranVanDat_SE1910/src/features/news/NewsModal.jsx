@@ -1,139 +1,131 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
-import InputField from '../../components/common/InputField';
-import { validateNewsForm } from '../../utils/validation';
-import { categoryService } from '../categories/categoryService';
+import React, { useState, useEffect } from "react";
+import InputField from "../../components/common/InputField";
+import { validateNews } from "../../utils/validation";
 
-export default function NewsModal({ show, onHide, onSave, editingNews }) {
-  const categories = categoryService.getAll();
-  const [form, setForm] = useState({
-    title: '',
-    categoryId: '',
-    summary: '',
-    content: '',
-    status: 'Published'
-  });
+export default function NewsModal({
+  isOpen,
+  mode,
+  initialData,
+  categories,
+  onClose,
+  onSave,
+}) {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [status, setStatus] = useState(1);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (editingNews) {
-      setForm({
-        title: editingNews.title,
-        categoryId: editingNews.categoryId,
-        summary: editingNews.summary || '',
-        content: editingNews.content,
-        status: editingNews.status || 'Published'
-      });
+    if (initialData && mode === "UPDATE") {
+      setTitle(initialData.title);
+      setContent(initialData.content);
+      setCategoryId(initialData.categoryId);
+      setStatus(initialData.status);
     } else {
-      setForm({
-        title: '',
-        categoryId: categories[0]?.id || '',
-        summary: '',
-        content: '',
-        status: 'Published'
-      });
+      setTitle("");
+      setContent("");
+      setCategoryId(categories[0]?.id || "");
+      setStatus(1);
     }
     setErrors({});
-  }, [editingNews, show]);
+  }, [initialData, mode, isOpen, categories]);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
-  };
+  if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newErrors = validateNewsForm(form);
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    const validation = validateNews({ title, content, categoryId });
+    if (!validation.isValid) {
+      setErrors(validation.errors);
       return;
     }
-    onSave(form);
+
+    onSave({
+      ...(mode === "UPDATE"
+        ? { id: initialData.id, createdBy: initialData.createdBy }
+        : { id: Date.now(), createdBy: "Admin" }),
+      title: title.trim(),
+      content: content.trim(),
+      categoryId: Number(categoryId),
+      status: Number(status),
+    });
+    onClose();
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered>
-      <Modal.Header closeButton>
-        <Modal.Title className="fw-bold">
-          {editingNews ? 'Chỉnh Sửa Tin Tức' : 'Đăng Tin Tức Mới'}
-        </Modal.Title>
-      </Modal.Header>
-      <Form onSubmit={handleSubmit} noValidate>
-        <Modal.Body>
+    <div className="modal-backdrop">
+      <div className="modal-card">
+        <h3>{mode === "CREATE" ? "Add New Article" : "Edit Article"}</h3>
+        <form onSubmit={handleSubmit} style={{ marginTop: "16px" }}>
           <InputField
-            label="Tiêu Đề Tin Tức"
-            name="title"
-            value={form.title}
-            onChange={handleChange}
+            label="Article Title"
+            type="text"
+            placeholder="Headline of the article"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             error={errors.title}
-            placeholder="Nhập tiêu đề..."
             required
           />
-
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label className="fw-semibold">
-                  Chuyên Mục <span className="text-danger">*</span>
-                </Form.Label>
-                <Form.Select
-                  name="categoryId"
-                  value={form.categoryId}
-                  onChange={handleChange}
-                  isInvalid={Boolean(errors.categoryId)}
-                >
-                  <option value="">-- Chọn chuyên mục --</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </Form.Select>
-                {errors.categoryId && (
-                  <Form.Control.Feedback type="invalid">{errors.categoryId}</Form.Control.Feedback>
-                )}
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label className="fw-semibold">Trạng Thái</Form.Label>
-                <Form.Select name="status" value={form.status} onChange={handleChange}>
-                  <option value="Published">Đã Xuất Bản (Published)</option>
-                  <option value="Draft">Bản Nháp (Draft)</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-          </Row>
-
-          <InputField
-            label="Tóm Tắt Ngắn"
-            name="summary"
-            value={form.summary}
-            onChange={handleChange}
-            placeholder="Tóm tắt nội dung bài viết..."
-          />
-
-          <InputField
-            as="textarea"
-            rows={5}
-            label="Nội Dung Chi Tiết"
-            name="content"
-            value={form.content}
-            onChange={handleChange}
-            error={errors.content}
-            placeholder="Nội dung bài viết đầy đủ (tối thiểu 20 ký tự)..."
-            required
-          />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={onHide}>
-            Hủy
-          </Button>
-          <Button variant="primary" type="submit">
-            {editingNews ? 'Lưu Thay Đổi' : 'Đăng Bài'}
-          </Button>
-        </Modal.Footer>
-      </Form>
-    </Modal>
+          <div className="form-group">
+            <label className="form-label">
+              Category <span style={{ color: "#ef4444" }}>*</span>
+            </label>
+            <select
+              className="form-control"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            {errors.categoryId && (
+              <div className="error-text">{errors.categoryId}</div>
+            )}
+          </div>
+          <div className="form-group">
+            <label className="form-label">
+              Content Body <span style={{ color: "#ef4444" }}>*</span>
+            </label>
+            <textarea
+              rows="4"
+              className="form-control"
+              placeholder="Write article summary or body..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+            />
+            {errors.content && (
+              <div className="error-text">{errors.content}</div>
+            )}
+          </div>
+          <div className="form-group">
+            <label className="form-label">Status</label>
+            <select
+              className="form-control"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value={1}>Active</option>
+              <option value={0}>Inactive</option>
+            </select>
+          </div>
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

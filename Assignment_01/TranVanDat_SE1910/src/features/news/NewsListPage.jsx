@@ -1,136 +1,151 @@
-import React, { useState } from 'react';
-import { Table, Button, Badge } from 'react-bootstrap';
-import { newsService } from './newsService';
-import { categoryService } from '../categories/categoryService';
-import NewsModal from './NewsModal';
-import ConfirmModal from '../../components/common/ConfirmModal';
-import SearchBar from '../../components/common/SearchBar';
+import React, { useState } from "react";
+import SearchBar from "../../components/common/SearchBar";
+import NewsModal from "./NewsModal";
+import ConfirmModal from "../../components/common/ConfirmModal";
 
-export default function NewsListPage() {
-  const [news, setNews] = useState(newsService.getAll());
-  const categories = categoryService.getAll();
-  const [search, setSearch] = useState('');
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingNews, setEditingNews] = useState(null);
-  const [deleteId, setDeleteId] = useState(null);
+export default function NewsListPage({ news, setNews, categories }) {
+  const [keyword, setKeyword] = useState("");
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    mode: "CREATE",
+    data: null,
+  });
+  const [deleteConfig, setDeleteConfig] = useState({
+    isOpen: false,
+    item: null,
+  });
 
   const getCategoryName = (catId) => {
-    const cat = categories.find((c) => c.id === catId);
-    return cat ? cat.name : 'Chưa phân loại';
+    const found = categories.find((c) => c.id === catId);
+    return found ? found.name : "Unknown";
   };
 
-  const handleOpenAdd = () => {
-    setEditingNews(null);
-    setModalOpen(true);
-  };
-
-  const handleOpenEdit = (item) => {
-    setEditingNews(item);
-    setModalOpen(true);
-  };
-
-  const handleSave = (form) => {
-    if (editingNews) {
-      newsService.update(editingNews.id, form);
-    } else {
-      newsService.create(form);
-    }
-    setNews(newsService.getAll());
-    setModalOpen(false);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (deleteId) {
-      newsService.delete(deleteId);
-      setNews(newsService.getAll());
-      setDeleteId(null);
-    }
-  };
-
-  const filtered = news.filter((n) =>
-    n.title.toLowerCase().includes(search.trim().toLowerCase())
+  const filteredNews = news.filter(
+    (n) =>
+      n.title.toLowerCase().includes(keyword.trim().toLowerCase()) ||
+      n.content.toLowerCase().includes(keyword.trim().toLowerCase()),
   );
 
+  const handleSave = (item) => {
+    if (modalConfig.mode === "CREATE") {
+      setNews((prev) => [item, ...prev]);
+    } else {
+      setNews((prev) => prev.map((n) => (n.id === item.id ? item : n)));
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    setNews((prev) => prev.filter((n) => n.id !== deleteConfig.item.id));
+    setDeleteConfig({ isOpen: false, item: null });
+  };
+
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h3 className="fw-bold mb-1">Quản Lý Tin Tức</h3>
-          <p className="text-secondary small mb-0">Quản lý bài viết và xuất bản nội dung</p>
-        </div>
-        <Button variant="primary" onClick={handleOpenAdd}>
-          + Viết Bài Mới
-        </Button>
+    <div className="page-body">
+      <div className="page-header">
+        <h2 className="page-title">News Articles Management</h2>
+        <button
+          className="btn btn-primary"
+          onClick={() =>
+            setModalConfig({ isOpen: true, mode: "CREATE", data: null })
+          }
+        >
+          + Create Article
+        </button>
       </div>
 
-      <div className="table-card p-3 mb-4">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <SearchBar value={search} onChange={setSearch} placeholder="Tìm kiếm tiêu đề tin..." />
-          <Badge bg="success" className="p-2">
-            Tổng cộng: {filtered.length} bài viết
-          </Badge>
-        </div>
+      <div className="card">
+        <SearchBar
+          keyword={keyword}
+          onSearchChange={setKeyword}
+          placeholder="Search by title or content..."
+        />
 
-        <Table responsive hover className="align-middle mb-0">
-          <thead className="table-light">
-            <tr>
-              <th>ID</th>
-              <th>Tiêu Đề</th>
-              <th>Chuyên Mục</th>
-              <th>Trạng Thái</th>
-              <th>Ngày Tạo</th>
-              <th className="text-end">Thao Tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
+        <div className="table-responsive">
+          <table>
+            <thead>
               <tr>
-                <td colSpan={6} className="text-center py-4 text-muted">
-                  Không tìm thấy bài viết nào
-                </td>
+                <th style={{ width: "60px" }}>ID</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Author</th>
+                <th>Status</th>
+                <th style={{ width: "160px", textAlign: "center" }}>Actions</th>
               </tr>
-            ) : (
-              filtered.map((item) => (
-                <tr key={item.id}>
-                  <td className="fw-semibold text-secondary">{item.id}</td>
-                  <td className="fw-bold text-dark">{item.title}</td>
-                  <td>
-                    <Badge bg="secondary">{getCategoryName(item.categoryId)}</Badge>
-                  </td>
-                  <td>
-                    <Badge bg={item.status === 'Published' ? 'success' : 'warning'} text={item.status === 'Published' ? 'white' : 'dark'}>
-                      {item.status}
-                    </Badge>
-                  </td>
-                  <td>{item.createdAt}</td>
-                  <td className="text-end">
-                    <Button variant="outline-warning" size="sm" className="me-2" onClick={() => handleOpenEdit(item)}>
-                      Sửa
-                    </Button>
-                    <Button variant="outline-danger" size="sm" onClick={() => setDeleteId(item.id)}>
-                      Xóa
-                    </Button>
+            </thead>
+            <tbody>
+              {filteredNews.length > 0 ? (
+                filteredNews.map((n) => (
+                  <tr key={n.id}>
+                    <td>{n.id}</td>
+                    <td>
+                      <strong>{n.title}</strong>
+                    </td>
+                    <td>
+                      <span className="badge badge-admin">
+                        {getCategoryName(n.categoryId)}
+                      </span>
+                    </td>
+                    <td>{n.createdBy}</td>
+                    <td>
+                      <span
+                        className={`badge ${n.status === 1 ? "badge-active" : "badge-inactive"}`}
+                      >
+                        {n.status === 1 ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() =>
+                          setModalConfig({
+                            isOpen: true,
+                            mode: "UPDATE",
+                            data: n,
+                          })
+                        }
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() =>
+                          setDeleteConfig({ isOpen: true, item: n })
+                        }
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="table-empty">
+                    No articles found matching criteria.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </Table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <NewsModal
-        show={modalOpen}
-        onHide={() => setModalOpen(false)}
+        isOpen={modalConfig.isOpen}
+        mode={modalConfig.mode}
+        initialData={modalConfig.data}
+        categories={categories}
+        onClose={() =>
+          setModalConfig({ isOpen: false, mode: "CREATE", data: null })
+        }
         onSave={handleSave}
-        editingNews={editingNews}
       />
 
       <ConfirmModal
-        show={Boolean(deleteId)}
-        onHide={() => setDeleteId(null)}
-        onConfirm={handleDeleteConfirm}
-        title="Xóa Bài Viết"
-        message="Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa tin này không?"
+        isOpen={deleteConfig.isOpen}
+        title="Delete News Article"
+        message={`Are you sure you want to permanently remove article "${deleteConfig.item?.title}"?`}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteConfig({ isOpen: false, item: null })}
       />
     </div>
   );
