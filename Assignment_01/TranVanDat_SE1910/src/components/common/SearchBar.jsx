@@ -1,14 +1,24 @@
-import React from 'react';
-import { Form, InputGroup } from 'react-bootstrap';
+import React from "react";
 
-export default function SearchBar({ value, onChange, placeholder = "Tìm kiếm nhanh..." }) {
+export default function SearchBar({ keyword, onSearchChange, placeholder }) {
   return (
-    <InputGroup className="shadow-sm" style={{ maxWidth: "350px" }}>
-      <Form.Control
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+    <div className="search-wrapper">
+      <input
+        type="text"
+        className="form-control"
+        placeholder={placeholder || "Search records..."}
+        value={keyword}
+        onChange={(e) => onSearchChange(e.target.value)}
       />
-    </InputGroup>
+      {keyword && (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => onSearchChange("")}
+        >
+          Clear
+        </button>
+      )}
+    </div>
   );
 }

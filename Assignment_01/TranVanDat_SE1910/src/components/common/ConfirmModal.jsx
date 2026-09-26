@@ -1,31 +1,32 @@
-import React from 'react';
-import { Modal, Button } from 'react-bootstrap';
+import React from "react";
 
 export default function ConfirmModal({
-  show,
-  onHide,
+  isOpen,
+  title,
+  message,
   onConfirm,
-  title = "Xác nhận hành động",
-  message = "Bạn có chắc chắn muốn thực hiện hành động này không?",
-  confirmText = "Xác nhận",
-  confirmVariant = "danger"
+  onCancel,
 }) {
+  if (!isOpen) return null;
+
   return (
-    <Modal show={show} onHide={onHide} centered>
-      <Modal.Header closeButton>
-        <Modal.Title className="fw-bold">{title}</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <p className="mb-0 text-secondary">{message}</p>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
-          Hủy bỏ
-        </Button>
-        <Button variant={confirmVariant} onClick={onConfirm}>
-          {confirmText}
-        </Button>
-      </Modal.Footer>
-    </Modal>
+    <div className="modal-backdrop">
+      <div className="modal-card">
+        <h3 style={{ marginBottom: "12px" }}>{title || "Confirm Action"}</h3>
+        <p style={{ color: "#64748b", lineHeight: 1.5 }}>{message}</p>
+        <div className="modal-footer">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+          <button type="button" className="btn btn-danger" onClick={onConfirm}>
+            Confirm Delete
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,39 +1,15 @@
-import React from 'react';
-import { Form } from 'react-bootstrap';
+import React from "react";
 
-export default function InputField({
-  label,
-  name,
-  type = 'text',
-  value,
-  onChange,
-  error,
-  placeholder = '',
-  as,
-  rows,
-  children,
-  required = false
-}) {
+export default function InputField({ label, error, required, ...props }) {
   return (
-    <Form.Group className="mb-3">
+    <div className="form-group">
       {label && (
-        <Form.Label className="fw-semibold">
-          {label} {required && <span className="text-danger">*</span>}
-        </Form.Label>
+        <label className="form-label">
+          {label} {required && <span style={{ color: "#ef4444" }}>*</span>}
+        </label>
       )}
-      <Form.Control
-        as={as}
-        rows={rows}
-        type={as ? undefined : type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        isInvalid={Boolean(error)}
-      >
-        {children}
-      </Form.Control>
-      {error && <Form.Control.Feedback type="invalid">{error}</Form.Control.Feedback>}
-    </Form.Group>
+      <input className="form-control" {...props} />
+      {error && <div className="error-text">{error}</div>}
+    </div>
   );
 }
