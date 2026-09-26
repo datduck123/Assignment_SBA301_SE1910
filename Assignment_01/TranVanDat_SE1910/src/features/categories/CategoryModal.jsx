@@ -35,7 +35,7 @@ export default function CategoryModal({
     }
 
     onSave({
-      ...(mode === "UPDATE" ? { id: initialData.id } : { id: Date.now() }),
+      ...(mode === "UPDATE" && { id: initialData.id }),
       name: name.trim(),
       status: Number(status),
     });

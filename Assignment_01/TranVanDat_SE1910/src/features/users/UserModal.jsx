@@ -38,7 +38,7 @@ export default function UserModal({
     }
 
     onSave({
-      ...(mode === "UPDATE" ? { id: initialData.id } : { id: Date.now() }),
+      ...(mode === "UPDATE" && { id: initialData.id }),
       username: username.trim(),
       role: Number(role),
       status: Number(status),

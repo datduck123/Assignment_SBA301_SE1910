@@ -28,7 +28,11 @@ export default function NewsListPage({ news, setNews, categories }) {
 
   const handleSave = (item) => {
     if (modalConfig.mode === "CREATE") {
-      setNews((prev) => [item, ...prev]);
+      const nextId =
+        news.length > 0
+          ? Math.max(...news.map((n) => Number(n.id) || 0)) + 1
+          : 1;
+      setNews((prev) => [{ ...item, id: nextId }, ...prev]);
     } else {
       setNews((prev) => prev.map((n) => (n.id === item.id ? item : n)));
     }

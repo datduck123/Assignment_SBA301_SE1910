@@ -21,7 +21,11 @@ export default function CategoryListPage({ categories, setCategories, news }) {
 
   const handleSave = (item) => {
     if (modalConfig.mode === "CREATE") {
-      setCategories((prev) => [item, ...prev]);
+      const nextId =
+        categories.length > 0
+          ? Math.max(...categories.map((c) => Number(c.id) || 0)) + 1
+          : 1;
+      setCategories((prev) => [{ ...item, id: nextId }, ...prev]);
     } else {
       setCategories((prev) => prev.map((c) => (c.id === item.id ? item : c)));
     }

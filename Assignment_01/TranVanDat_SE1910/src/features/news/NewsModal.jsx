@@ -44,7 +44,7 @@ export default function NewsModal({
     onSave({
       ...(mode === "UPDATE"
         ? { id: initialData.id, createdBy: initialData.createdBy }
-        : { id: Date.now(), createdBy: "Admin" }),
+        : { createdBy: "Admin" }),
       title: title.trim(),
       content: content.trim(),
       categoryId: Number(categoryId),

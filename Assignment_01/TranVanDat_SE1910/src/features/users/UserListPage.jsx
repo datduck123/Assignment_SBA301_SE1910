@@ -21,7 +21,11 @@ export default function UserListPage({ users, setUsers }) {
 
   const handleSave = (item) => {
     if (modalConfig.mode === "CREATE") {
-      setUsers((prev) => [item, ...prev]);
+      const nextId =
+        users.length > 0
+          ? Math.max(...users.map((u) => Number(u.id) || 0)) + 1
+          : 1;
+      setUsers((prev) => [{ ...item, id: nextId }, ...prev]);
     } else {
       setUsers((prev) => prev.map((u) => (u.id === item.id ? item : u)));
     }
