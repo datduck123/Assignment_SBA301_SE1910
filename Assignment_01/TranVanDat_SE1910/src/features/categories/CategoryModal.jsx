@@ -1,75 +1,86 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
-import InputField from '../../components/common/InputField';
-import { validateCategoryForm } from '../../utils/validation';
+import React, { useState, useEffect } from "react";
+import InputField from "../../components/common/InputField";
+import { validateCategory } from "../../utils/validation";
 
-export default function CategoryModal({ show, onHide, onSave, editingCategory }) {
-  const [form, setForm] = useState({ name: '', description: '' });
+export default function CategoryModal({
+  isOpen,
+  mode,
+  initialData,
+  onClose,
+  onSave,
+}) {
+  const [name, setName] = useState("");
+  const [status, setStatus] = useState(1);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (editingCategory) {
-      setForm({ name: editingCategory.name, description: editingCategory.description });
+    if (initialData && mode === "UPDATE") {
+      setName(initialData.name);
+      setStatus(initialData.status);
     } else {
-      setForm({ name: '', description: '' });
+      setName("");
+      setStatus(1);
     }
     setErrors({});
-  }, [editingCategory, show]);
+  }, [initialData, mode, isOpen]);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
-  };
+  if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newErrors = validateCategoryForm(form);
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    const validation = validateCategory({ name, status });
+    if (!validation.isValid) {
+      setErrors(validation.errors);
       return;
     }
-    onSave(form);
+
+    onSave({
+      ...(mode === "UPDATE" ? { id: initialData.id } : { id: Date.now() }),
+      name: name.trim(),
+      status: Number(status),
+    });
+    onClose();
   };
 
   return (
-    <Modal show={show} onHide={onHide} centered>
-      <Modal.Header closeButton>
-        <Modal.Title className="fw-bold">
-          {editingCategory ? 'Chỉnh Sửa Chuyên Mục' : 'Thêm Mới Chuyên Mục'}
-        </Modal.Title>
-      </Modal.Header>
-      <Form onSubmit={handleSubmit} noValidate>
-        <Modal.Body>
+    <div className="modal-backdrop">
+      <div className="modal-card">
+        <h3>{mode === "CREATE" ? "Create Category" : "Edit Category"}</h3>
+        <form onSubmit={handleSubmit} style={{ marginTop: "16px" }}>
           <InputField
-            label="Tên Chuyên Mục"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
+            label="Category Name"
+            type="text"
+            placeholder="e.g. Science & Tech"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             error={errors.name}
-            placeholder="Ví dụ: Công nghệ, Đời sống..."
             required
           />
-          <InputField
-            as="textarea"
-            rows={3}
-            label="Mô Tả"
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            error={errors.description}
-            placeholder="Mô tả thông tin chuyên mục..."
-            required
-          />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={onHide}>
-            Hủy
-          </Button>
-          <Button variant="primary" type="submit">
-            {editingCategory ? 'Lưu Thay Đổi' : 'Tạo Mới'}
-          </Button>
-        </Modal.Footer>
-      </Form>
-    </Modal>
+          <div className="form-group">
+            <label className="form-label">Status</label>
+            <select
+              className="form-control"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value={1}>Active</option>
+              <option value={0}>Inactive</option>
+            </select>
+          </div>
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
