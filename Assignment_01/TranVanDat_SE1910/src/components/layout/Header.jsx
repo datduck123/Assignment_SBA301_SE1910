@@ -1,30 +1,21 @@
-import React from 'react';
-import { Navbar, Container, Button } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import { authService } from '../../features/auth/authService';
+import React from "react";
 
-export default function Header() {
-  const navigate = useNavigate();
-  const user = authService.getCurrentUser();
-
-  const handleLogout = () => {
-    authService.logout();
-    navigate('/login');
-  };
-
+export default function Header({ user, onLogout }) {
   return (
-    <Navbar bg="white" className="border-bottom py-3 px-4 shadow-sm">
-      <Container fluid className="d-flex justify-content-between align-items-center">
-        <h5 className="mb-0 fw-bold text-dark">Hệ Thống Quản Trị Nội Dung (CMS)</h5>
-        <div className="d-flex align-items-center gap-3">
-          <span className="text-secondary small">
-            Xin chào, <strong className="text-dark">{user?.name || "Quản trị viên"}</strong>
-          </span>
-          <Button variant="outline-danger" size="sm" onClick={handleLogout}>
-            Đăng xuất
-          </Button>
-        </div>
-      </Container>
-    </Navbar>
+    <header className="app-header">
+      <div className="header-left">
+        <div className="brand-logo">FU</div>
+        <div className="brand-title">FUNews Portal</div>
+      </div>
+      <div className="header-right">
+        <span className="user-greeting">
+          Welcome, <strong className="user-name">{user?.username}</strong> (
+          {user?.role === 1 ? "Admin" : "Staff"})
+        </span>
+        <button className="btn btn-secondary btn-sm" onClick={onLogout}>
+          Logout
+        </button>
+      </div>
+    </header>
   );
 }

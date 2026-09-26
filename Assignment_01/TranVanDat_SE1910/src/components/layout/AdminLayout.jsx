@@ -1,24 +1,20 @@
-import React from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import Header from './Header';
-import { authService } from '../../features/auth/authService';
+import React from "react";
+import Header from "./Header";
+import Sidebar from "./Sidebar";
 
-export default function AdminLayout() {
-  const isAuth = authService.isAuthenticated();
-
-  if (!isAuth) {
-    return <Navigate to="/login" replace />;
-  }
-
+export default function AdminLayout({
+  user,
+  onLogout,
+  currentTab,
+  onChangeTab,
+  children,
+}) {
   return (
-    <div className="admin-wrapper">
-      <Sidebar />
-      <div className="admin-main">
-        <Header />
-        <main className="admin-content">
-          <Outlet />
-        </main>
+    <div className="app-container">
+      <Sidebar currentTab={currentTab} onChangeTab={onChangeTab} />
+      <div className="main-content">
+        <Header user={user} onLogout={onLogout} />
+        <main className="content-outlet">{children}</main>
       </div>
     </div>
   );
