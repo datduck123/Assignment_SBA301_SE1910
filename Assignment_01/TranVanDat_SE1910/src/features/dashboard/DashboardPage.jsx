@@ -1,45 +1,29 @@
-import React from 'react';
-import { Row, Col, Card } from 'react-bootstrap';
-import { categoryService } from '../categories/categoryService';
-import { newsService } from '../news/newsService';
-import { userService } from '../users/userService';
+import React from "react";
 
-export default function DashboardPage() {
-  const totalCategories = categoryService.getAll().length;
-  const totalNews = newsService.getAll().length;
-  const totalUsers = userService.getAll().length;
+export default function DashboardPage({ categories, news, users }) {
+  const metrics = [
+    { title: "Total Categories", count: categories.length, color: "#3b82f6" },
+    { title: "Total News Articles", count: news.length, color: "#10b981" },
+    { title: "Registered Users", count: users.length, color: "#f59e0b" },
+  ];
 
   return (
-    <div>
-      <h3 className="fw-bold mb-4">Tổng Quan Hệ Thống</h3>
-
-      <Row className="g-4 mb-4">
-        <Col md={4}>
-          <div className="stat-card border-primary border-start border-4">
-            <div className="text-secondary small fw-semibold text-uppercase">Chuyên Mục</div>
-            <h2 className="fw-bold text-dark mt-2 mb-0">{totalCategories}</h2>
+    <div className="page-body">
+      <div className="page-header">
+        <h2 className="page-title">Executive Dashboard</h2>
+      </div>
+      <div className="dashboard-grid">
+        {metrics.map((m, idx) => (
+          <div
+            key={idx}
+            className="card dashboard-card"
+            style={{ borderLeftColor: m.color }}
+          >
+            <div className="dashboard-card-title">{m.title}</div>
+            <div className="dashboard-card-value">{m.count}</div>
           </div>
-        </Col>
-        <Col md={4}>
-          <div className="stat-card border-success border-start border-4">
-            <div className="text-secondary small fw-semibold text-uppercase">Tin Tức / Bài Viết</div>
-            <h2 className="fw-bold text-dark mt-2 mb-0">{totalNews}</h2>
-          </div>
-        </Col>
-        <Col md={4}>
-          <div className="stat-card border-warning border-start border-4">
-            <div className="text-secondary small fw-semibold text-uppercase">Tài Khoản Quản Trị</div>
-            <h2 className="fw-bold text-dark mt-2 mb-0">{totalUsers}</h2>
-          </div>
-        </Col>
-      </Row>
-
-      <Card className="border-0 shadow-sm p-4 bg-white">
-        <h5 className="fw-bold mb-3">Chào mừng bạn đến với hệ thống quản trị!</h5>
-        <p className="text-secondary mb-0">
-          Dự án được xây dựng hoàn toàn trên nền tảng <strong>React 19</strong>, <strong>React Router 7</strong>, <strong>React-Bootstrap</strong> và mô hình <strong>Feature-based Architecture</strong>. Dữ liệu được quản lý qua service và đồng bộ với <code>localStorage</code>.
-        </p>
-      </Card>
+        ))}
+      </div>
     </div>
   );
 }
