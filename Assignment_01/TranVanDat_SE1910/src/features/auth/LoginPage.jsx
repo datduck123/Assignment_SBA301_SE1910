@@ -1,82 +1,65 @@
-import React, { useState } from 'react';
-import { Card, Button, Alert, Container } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import InputField from '../../components/common/InputField';
-import { authService } from './authService';
-import { validateEmail, validateRequired } from '../../utils/validation';
+import React, { useState } from "react";
+import { authService } from "./authService";
+import { validateAuth } from "../../utils/validation";
+import InputField from "../../components/common/InputField";
 
-export default function LoginPage() {
-  const navigate = useNavigate();
-  const [form, setForm] = useState({ email: 'admin@fpt.edu.vn', password: '123456' });
+export default function LoginPage({ onLoginSuccess }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
-  const [loginError, setLoginError] = useState('');
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
-  };
+  const [serverError, setServerError] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newErrors = {};
-    const emailErr = validateEmail(form.email);
-    if (emailErr) newErrors.email = emailErr;
-
-    const passErr = validateRequired(form.password, 'Mật khẩu');
-    if (passErr) newErrors.password = passErr;
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    const validation = validateAuth(username, password);
+    if (!validation.isValid) {
+      setErrors(validation.errors);
       return;
     }
 
-    const res = authService.login(form.email, form.password);
-    if (res.success) {
-      navigate('/dashboard');
+    setErrors({});
+    const result = authService.login(username, password);
+    if (result.success) {
+      setServerError("");
+      onLoginSuccess(result.data);
     } else {
-      setLoginError(res.message);
+      setServerError(result.message);
     }
   };
 
   return (
-    <Container className="d-flex align-items-center justify-content-center min-vh-100">
-      <Card className="shadow-lg border-0 p-4" style={{ width: '100%', maxWidth: '420px' }}>
-        <Card.Body>
-          <div className="text-center mb-4">
-            <h3 className="fw-bold text-primary">Đăng Nhập Quản Trị</h3>
-            <p className="text-secondary small">Dự án React 19 - TranVanDat_SE1910</p>
-          </div>
-
-          {loginError && <Alert variant="danger">{loginError}</Alert>}
-
-          <form onSubmit={handleSubmit} noValidate>
-            <InputField
-              label="Email Quản Trị"
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              error={errors.email}
-              placeholder="nhap.email@fpt.edu.vn"
-              required
-            />
-            <InputField
-              label="Mật khẩu"
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={handleChange}
-              error={errors.password}
-              placeholder="••••••"
-              required
-            />
-
-            <Button type="submit" variant="primary" className="w-100 py-2 mt-2 fw-semibold">
-              Đăng Nhập Vào Hệ Thống
-            </Button>
-          </form>
-        </Card.Body>
-      </Card>
-    </Container>
+    <div className="login-container">
+      <div className="card login-card">
+        <h2 className="login-title">Sign In to FUNews</h2>
+        {serverError && <div className="error-box">{serverError}</div>}
+        <form onSubmit={handleSubmit}>
+          <InputField
+            label="Username"
+            type="text"
+            placeholder="e.g. Admin"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            error={errors.username}
+            required
+          />
+          <InputField
+            label="Password"
+            type="password"
+            placeholder="e.g. Admin"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={errors.password}
+            required
+          />
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{ width: "100%", marginTop: "10px" }}
+          >
+            Login
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
