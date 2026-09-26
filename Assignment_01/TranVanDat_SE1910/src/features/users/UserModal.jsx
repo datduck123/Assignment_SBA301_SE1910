@@ -1,127 +1,101 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
-import InputField from '../../components/common/InputField';
-import { validateUserForm } from '../../utils/validation';
+import React, { useState, useEffect } from "react";
+import InputField from "../../components/common/InputField";
+import { validateUser } from "../../utils/validation";
 
-export default function UserModal({ show, onHide, onSave, editingUser }) {
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'Editor',
-    status: 'Active'
-  });
+export default function UserModal({
+  isOpen,
+  mode,
+  initialData,
+  onClose,
+  onSave,
+}) {
+  const [username, setUsername] = useState("");
+  const [role, setRole] = useState(2);
+  const [status, setStatus] = useState(1);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (editingUser) {
-      setForm({
-        name: editingUser.name,
-        email: editingUser.email,
-        password: '',
-        role: editingUser.role || 'Editor',
-        status: editingUser.status || 'Active'
-      });
+    if (initialData && mode === "UPDATE") {
+      setUsername(initialData.username);
+      setRole(initialData.role);
+      setStatus(initialData.status);
     } else {
-      setForm({
-        name: '',
-        email: '',
-        password: '',
-        role: 'Editor',
-        status: 'Active'
-      });
+      setUsername("");
+      setRole(2);
+      setStatus(1);
     }
     setErrors({});
-  }, [editingUser, show]);
+  }, [initialData, mode, isOpen]);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
-  };
+  if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newErrors = validateUserForm(form, Boolean(editingUser));
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    const validation = validateUser({ username, role, status });
+    if (!validation.isValid) {
+      setErrors(validation.errors);
       return;
     }
-    onSave(form);
+
+    onSave({
+      ...(mode === "UPDATE" ? { id: initialData.id } : { id: Date.now() }),
+      username: username.trim(),
+      role: Number(role),
+      status: Number(status),
+    });
+    onClose();
   };
 
   return (
-    <Modal show={show} onHide={onHide} centered>
-      <Modal.Header closeButton>
-        <Modal.Title className="fw-bold">
-          {editingUser ? 'Chỉnh Sửa Tài Khoản' : 'Thêm Người Dùng Mới'}
-        </Modal.Title>
-      </Modal.Header>
-      <Form onSubmit={handleSubmit} noValidate>
-        <Modal.Body>
+    <div className="modal-backdrop">
+      <div className="modal-card">
+        <h3>{mode === "CREATE" ? "Add User Account" : "Edit User Account"}</h3>
+        <form onSubmit={handleSubmit} style={{ marginTop: "16px" }}>
           <InputField
-            label="Họ và Tên"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            error={errors.name}
-            placeholder="Nguyễn Văn A"
+            label="Username"
+            type="text"
+            placeholder="Enter username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            error={errors.username}
             required
           />
-          <InputField
-            label="Email"
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            error={errors.email}
-            placeholder="email@example.com"
-            required
-          />
-
-          {!editingUser && (
-            <InputField
-              label="Mật Khẩu Khởi Tạo"
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={handleChange}
-              error={errors.password}
-              placeholder="Tối thiểu 6 ký tự"
-              required
-            />
-          )}
-
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label className="fw-semibold">Vai Trò</Form.Label>
-                <Form.Select name="role" value={form.role} onChange={handleChange}>
-                  <option value="Admin">Admin</option>
-                  <option value="Editor">Editor</option>
-                  <option value="Viewer">Viewer</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label className="fw-semibold">Trạng Thái</Form.Label>
-                <Form.Select name="status" value={form.status} onChange={handleChange}>
-                  <option value="Active">Hoạt động (Active)</option>
-                  <option value="Inactive">Khóa (Inactive)</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-          </Row>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={onHide}>
-            Hủy
-          </Button>
-          <Button variant="primary" type="submit">
-            {editingUser ? 'Lưu Thay Đổi' : 'Thêm Người Dùng'}
-          </Button>
-        </Modal.Footer>
-      </Form>
-    </Modal>
+          <div className="form-group">
+            <label className="form-label">Role</label>
+            <select
+              className="form-control"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <option value={1}>Admin (1)</option>
+              <option value={2}>Staff (2)</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Status</label>
+            <select
+              className="form-control"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value={1}>Active</option>
+              <option value={0}>Inactive</option>
+            </select>
+          </div>
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

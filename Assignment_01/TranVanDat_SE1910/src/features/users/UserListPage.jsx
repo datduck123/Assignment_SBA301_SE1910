@@ -1,133 +1,143 @@
-import React, { useState } from 'react';
-import { Table, Button, Badge } from 'react-bootstrap';
-import { userService } from './userService';
-import UserModal from './UserModal';
-import ConfirmModal from '../../components/common/ConfirmModal';
-import SearchBar from '../../components/common/SearchBar';
+import React, { useState } from "react";
+import SearchBar from "../../components/common/SearchBar";
+import UserModal from "./UserModal";
+import ConfirmModal from "../../components/common/ConfirmModal";
 
-export default function UserListPage() {
-  const [users, setUsers] = useState(userService.getAll());
-  const [search, setSearch] = useState('');
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
-  const [deleteId, setDeleteId] = useState(null);
+export default function UserListPage({ users, setUsers }) {
+  const [keyword, setKeyword] = useState("");
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    mode: "CREATE",
+    data: null,
+  });
+  const [deleteConfig, setDeleteConfig] = useState({
+    isOpen: false,
+    item: null,
+  });
 
-  const handleOpenAdd = () => {
-    setEditingUser(null);
-    setModalOpen(true);
-  };
-
-  const handleOpenEdit = (item) => {
-    setEditingUser(item);
-    setModalOpen(true);
-  };
-
-  const handleSave = (form) => {
-    if (editingUser) {
-      userService.update(editingUser.id, form);
-    } else {
-      userService.create(form);
-    }
-    setUsers(userService.getAll());
-    setModalOpen(false);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (deleteId) {
-      userService.delete(deleteId);
-      setUsers(userService.getAll());
-      setDeleteId(null);
-    }
-  };
-
-  const filtered = users.filter(
-    (u) =>
-      u.name.toLowerCase().includes(search.trim().toLowerCase()) ||
-      u.email.toLowerCase().includes(search.trim().toLowerCase())
+  const filteredUsers = users.filter((u) =>
+    u.username.toLowerCase().includes(keyword.trim().toLowerCase()),
   );
 
+  const handleSave = (item) => {
+    if (modalConfig.mode === "CREATE") {
+      setUsers((prev) => [item, ...prev]);
+    } else {
+      setUsers((prev) => prev.map((u) => (u.id === item.id ? item : u)));
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    setUsers((prev) => prev.filter((u) => u.id !== deleteConfig.item.id));
+    setDeleteConfig({ isOpen: false, item: null });
+  };
+
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h3 className="fw-bold mb-1">Quản Lý Người Dùng</h3>
-          <p className="text-secondary small mb-0">Danh sách tài khoản quản trị và biên tập viên</p>
-        </div>
-        <Button variant="primary" onClick={handleOpenAdd}>
-          + Thêm Tài Khoản
-        </Button>
+    <div className="page-body">
+      <div className="page-header">
+        <h2 className="page-title">User Accounts Management</h2>
+        <button
+          className="btn btn-primary"
+          onClick={() =>
+            setModalConfig({ isOpen: true, mode: "CREATE", data: null })
+          }
+        >
+          + Add Account
+        </button>
       </div>
 
-      <div className="table-card p-3 mb-4">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <SearchBar value={search} onChange={setSearch} placeholder="Tìm kiếm theo tên hoặc email..." />
-          <Badge bg="primary" className="p-2">
-            Tổng cộng: {filtered.length} tài khoản
-          </Badge>
-        </div>
+      <div className="card">
+        <SearchBar
+          keyword={keyword}
+          onSearchChange={setKeyword}
+          placeholder="Search by username..."
+        />
 
-        <Table responsive hover className="align-middle mb-0">
-          <thead className="table-light">
-            <tr>
-              <th>ID</th>
-              <th>Họ và Tên</th>
-              <th>Email</th>
-              <th>Vai Trò</th>
-              <th>Trạng Thái</th>
-              <th className="text-end">Thao Tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
+        <div className="table-responsive">
+          <table>
+            <thead>
               <tr>
-                <td colSpan={6} className="text-center py-4 text-muted">
-                  Không tìm thấy tài khoản nào
-                </td>
+                <th style={{ width: "80px" }}>ID</th>
+                <th>Username</th>
+                <th>System Role</th>
+                <th>Status</th>
+                <th style={{ width: "160px", textAlign: "center" }}>Actions</th>
               </tr>
-            ) : (
-              filtered.map((item) => (
-                <tr key={item.id}>
-                  <td className="fw-semibold text-secondary">{item.id}</td>
-                  <td className="fw-bold text-dark">{item.name}</td>
-                  <td>{item.email}</td>
-                  <td>
-                    <Badge bg={item.role === 'Admin' ? 'danger' : item.role === 'Editor' ? 'primary' : 'secondary'}>
-                      {item.role}
-                    </Badge>
-                  </td>
-                  <td>
-                    <Badge bg={item.status === 'Active' ? 'success' : 'secondary'}>
-                      {item.status}
-                    </Badge>
-                  </td>
-                  <td className="text-end">
-                    <Button variant="outline-warning" size="sm" className="me-2" onClick={() => handleOpenEdit(item)}>
-                      Sửa
-                    </Button>
-                    <Button variant="outline-danger" size="sm" onClick={() => setDeleteId(item.id)}>
-                      Xóa
-                    </Button>
+            </thead>
+            <tbody>
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((u) => (
+                  <tr key={u.id}>
+                    <td>{u.id}</td>
+                    <td>
+                      <strong>{u.username}</strong>
+                    </td>
+                    <td>
+                      <span
+                        className={`badge ${u.role === 1 ? "badge-admin" : "badge-staff"}`}
+                      >
+                        {u.role === 1 ? "Admin" : "Staff"}
+                      </span>
+                    </td>
+                    <td>
+                      <span
+                        className={`badge ${u.status === 1 ? "badge-active" : "badge-inactive"}`}
+                      >
+                        {u.status === 1 ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() =>
+                          setModalConfig({
+                            isOpen: true,
+                            mode: "UPDATE",
+                            data: u,
+                          })
+                        }
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() =>
+                          setDeleteConfig({ isOpen: true, item: u })
+                        }
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="table-empty">
+                    No accounts found matching keyword.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </Table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <UserModal
-        show={modalOpen}
-        onHide={() => setModalOpen(false)}
+        isOpen={modalConfig.isOpen}
+        mode={modalConfig.mode}
+        initialData={modalConfig.data}
+        onClose={() =>
+          setModalConfig({ isOpen: false, mode: "CREATE", data: null })
+        }
         onSave={handleSave}
-        editingUser={editingUser}
       />
 
       <ConfirmModal
-        show={Boolean(deleteId)}
-        onHide={() => setDeleteId(null)}
-        onConfirm={handleDeleteConfirm}
-        title="Xóa Người Dùng"
-        message="Bạn có chắc chắn muốn xóa tài khoản này khỏi hệ thống không?"
+        isOpen={deleteConfig.isOpen}
+        title="Delete User Account"
+        message={`Are you sure you want to delete user account "${deleteConfig.item?.username}"?`}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteConfig({ isOpen: false, item: null })}
       />
     </div>
   );
