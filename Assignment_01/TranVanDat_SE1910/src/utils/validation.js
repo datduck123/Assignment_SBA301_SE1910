@@ -1,68 +1,60 @@
-/**
- * Tập trung toàn bộ validation rules cho dự án
- */
-
-export const validateEmail = (email) => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email || !email.trim()) return "Email không được để trống";
-  if (!re.test(email.trim())) return "Định dạng email không hợp lệ";
-  return "";
-};
-
-export const validateRequired = (value, fieldName = "Trường này") => {
-  if (value === undefined || value === null || !String(value).trim()) {
-    return `${fieldName} không được để trống`;
+export const validateAuth = (username, password) => {
+  const errors = {};
+  if (!username || !username.trim()) {
+    errors.username = "Username is required";
   }
-  return "";
-};
-
-export const validateMinLength = (value, min, fieldName = "Trường này") => {
-  if (!value || value.length < min) {
-    return `${fieldName} phải có tối thiểu ${min} ký tự`;
+  if (!password || !password.trim()) {
+    errors.password = "Password is required";
   }
-  return "";
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
 };
 
-export const validateCategoryForm = (form) => {
+export const validateCategory = (data) => {
   const errors = {};
-  const nameError = validateRequired(form.name, "Tên chuyên mục");
-  if (nameError) errors.name = nameError;
-
-  const descError = validateRequired(form.description, "Mô tả chuyên mục");
-  if (descError) errors.description = descError;
-
-  return errors;
+  if (!data.name || !data.name.trim()) {
+    errors.name = "Category name is required";
+  } else if (data.name.trim().length < 2) {
+    errors.name = "Category name must be at least 2 characters";
+  }
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
 };
 
-export const validateNewsForm = (form) => {
+export const validateNews = (data) => {
   const errors = {};
-  const titleError = validateRequired(form.title, "Tiêu đề tin");
-  if (titleError) errors.title = titleError;
-
-  const catError = validateRequired(form.categoryId, "Chuyên mục");
-  if (catError) errors.categoryId = catError;
-
-  const contentError = validateMinLength(form.content, 20, "Nội dung");
-  if (contentError) errors.content = contentError;
-
-  return errors;
-};
-
-export const validateUserForm = (form, isEdit = false) => {
-  const errors = {};
-  const nameError = validateRequired(form.name, "Họ và tên");
-  if (nameError) errors.name = nameError;
-
-  const emailError = validateEmail(form.email);
-  if (emailError) errors.email = emailError;
-
-  if (!isEdit) {
-    const passError = validateMinLength(form.password, 6, "Mật khẩu");
-    if (passError) errors.password = passError;
+  if (!data.title || !data.title.trim()) {
+    errors.title = "Article title is required";
+  } else if (data.title.trim().length < 5) {
+    errors.title = "Title must be at least 5 characters";
   }
 
-  const roleError = validateRequired(form.role, "Vai trò");
-  if (roleError) errors.role = roleError;
+  if (!data.categoryId) {
+    errors.categoryId = "Please select a category";
+  }
 
-  return errors;
+  if (!data.content || !data.content.trim()) {
+    errors.content = "Article content is required";
+  }
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+};
+
+export const validateUser = (data) => {
+  const errors = {};
+  if (!data.username || !data.username.trim()) {
+    errors.username = "Username is required";
+  } else if (data.username.trim().length < 3) {
+    errors.username = "Username must be at least 3 characters";
+  }
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
 };
