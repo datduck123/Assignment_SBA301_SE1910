@@ -70,7 +70,7 @@ export default function CategoryListPage({ categories, setCategories, news }) {
           <table>
             <thead>
               <tr>
-                <th style={{ width: "80px" }}>ID</th>
+                <th style={{ width: "70px" }}>ID</th>
                 <th>Category Name</th>
                 <th>Status</th>
                 <th style={{ width: "160px", textAlign: "center" }}>Actions</th>
