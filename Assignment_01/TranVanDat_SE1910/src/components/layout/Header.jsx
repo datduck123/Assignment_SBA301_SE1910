@@ -9,8 +9,7 @@ export default function Header({ user, onLogout }) {
       </div>
       <div className="header-right">
         <span className="user-greeting">
-          Welcome, <strong className="user-name">{user?.username}</strong> (
-          {user?.role === 1 ? "Admin" : "Staff"})
+          Welcome, <strong className="user-name">{user?.username}</strong>
         </span>
         <button className="btn btn-secondary btn-sm" onClick={onLogout}>
           Logout
