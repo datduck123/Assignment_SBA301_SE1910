@@ -17,7 +17,7 @@ export const validateCategory = (data) => {
   if (!data.name || !data.name.trim()) {
     errors.name = "Category name is required";
   } else if (data.name.trim().length < 2) {
-    errors.name = "Category name must be at least 2 characters";
+    errors.name = "Category name must be at least 3 characters";
   }
   return {
     isValid: Object.keys(errors).length === 0,
