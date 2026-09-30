@@ -215,6 +215,14 @@ th {
   color: var(--text-muted);
 }
 
+td {
+  color: var(--text-main);
+}
+
+td strong {
+  color: var(--text-main);
+}
+
 tbody tr:hover {
   background-color: var(--bg-table-hover);
 }
@@ -413,6 +421,39 @@ tbody tr:hover {
   align-items: center;
   justify-content: space-between;
   padding: 12px 0;
+}
+
+.settings-card {
+  max-width: 640px;
+}
+
+.settings-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 16px;
+}
+
+.settings-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.settings-divider {
+  margin: 24px 0;
+  border: 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.settings-info-item {
+  font-size: 14px;
+  color: var(--text-main);
+  margin-top: 8px;
+}
+
+.settings-info-item:first-of-type {
+  margin-top: 0;
 }
 
 /* ===================================================
