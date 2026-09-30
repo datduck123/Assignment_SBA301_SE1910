@@ -7,13 +7,20 @@ export default function AdminLayout({
   onLogout,
   currentTab,
   onChangeTab,
+  theme,
+  onToggleTheme,
   children,
 }) {
   return (
-    <div className="app-container">
+    <div className="app-container" data-theme={theme}>
       <Sidebar currentTab={currentTab} onChangeTab={onChangeTab} />
       <div className="main-content">
-        <Header user={user} onLogout={onLogout} />
+        <Header
+          user={user}
+          onLogout={onLogout}
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+        />
         <main className="content-outlet">{children}</main>
       </div>
     </div>
